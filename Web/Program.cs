@@ -1,3 +1,5 @@
+using Application;
+using Infrastructure;
 
 namespace Web
 {
@@ -12,6 +14,8 @@ namespace Web
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            builder.Services.AddScoped<IProductParser, MockProductParser>();
 
             var app = builder.Build();
 
