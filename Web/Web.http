@@ -1,6 +1,14 @@
-@Web_HostAddress = http://localhost:5207
+@HostAddress = https://localhost:7197
 
-GET {{Web_HostAddress}}/weatherforecast/
+### GET all products
+GET {{HostAddress}}/api/Products
 Accept: application/json
 
-###
+### POST (add) a new product
+POST {{HostAddress}}/api/Products
+Content-Type: application/json
+
+{
+  "name": "Test Headphones",
+  "price": 3500
+}

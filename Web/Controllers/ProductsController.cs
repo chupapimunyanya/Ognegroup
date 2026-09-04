@@ -1,23 +1,32 @@
-﻿using Application;
-using Domain;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Ognegroup.Application.Commands;
+using Ognegroup.Application.Queries;
 
-namespace Web.Controllers;
+namespace Ognegroup.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductParser _parser;
+    private readonly IMediator _mediator;
 
-    public ProductsController(IProductParser parser)
+    public ProductsController(IMediator mediator)
     {
-        _parser = parser;
+        _mediator = mediator;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Product>> Get()
+    public async Task<IActionResult> GetAll()
     {
-        return Ok(_parser.GetProducts());
+        var products = await _mediator.Send(new GetAllProductsQuery());
+        return Ok(products);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Add(CreateProductCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok();
     }
 }
