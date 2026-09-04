@@ -29,4 +29,19 @@ public class ProductsController : ControllerBase
         await _mediator.Send(command);
         return Ok();
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, UpdateProductCommand command)
+    {
+        command.Id = id; // Ensure the ID from the URL is passed to the command
+        await _mediator.Send(command);
+        return NoContent(); // 204 No Content is standard for successful updates
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeleteProductCommand { Id = id });
+        return NoContent();
+    }
 }

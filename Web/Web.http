@@ -12,3 +12,15 @@ Content-Type: application/json
   "name": "Test Headphones",
   "price": 3500
 }
+
+### Update an existing product (Change '1' to a real ID from your database)
+PUT {{HostAddress}}/api/Products/2
+Content-Type: application/json
+
+{
+  "name": "Updated Headphones",
+  "price": 9999
+}
+
+### Delete a product (Change '2' to a real ID from your database)
+DELETE {{HostAddress}}/api/Products/99999
