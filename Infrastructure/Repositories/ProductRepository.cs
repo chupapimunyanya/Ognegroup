@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces;
 using Domain;
+using Infrastructure.Data; // Removed 'Ognegroup.' prefix
 using Microsoft.EntityFrameworkCore;
-using Ognegroup.Infrastructure.Data;
 
-namespace Ognegroup.Infrastructure.Repositories;
+namespace Infrastructure.Repositories; // Removed 'Ognegroup.' prefix
 
 public class ProductRepository : IProductRepository
 {
@@ -17,13 +17,17 @@ public class ProductRepository : IProductRepository
     public async Task<IEnumerable<Product>> GetAllAsync()
     {
         return await _context.Products
-        .OrderBy(p => p.Id)
-        .ToListAsync();
+            .Include(p => p.Supplier) // Eagerly load the related Supplier data
+            .OrderBy(p => p.Id)
+            .ToListAsync();
     }
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        // Changed from FindAsync to FirstOrDefaultAsync to support .Include()
+        return await _context.Products
+            .Include(p => p.Supplier) // Eagerly load the related Supplier data
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task AddAsync(Product product)
@@ -46,5 +50,31 @@ public class ProductRepository : IProductRepository
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
+    }
+
+    // Add this method inside your ProductRepository class
+    public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? searchTerm)
+    {
+        var query = _context.Products
+            .Include(p => p.Supplier)
+            .AsQueryable();
+
+        // 1. Apply search filter if provided
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
+        }
+
+        // 2. Count total items BEFORE pagination (needed for the frontend to draw page numbers)
+        var totalCount = await query.CountAsync();
+
+        // 3. Apply pagination (Skip previous pages, Take current page size)
+        var items = await query
+            .OrderBy(p => p.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }

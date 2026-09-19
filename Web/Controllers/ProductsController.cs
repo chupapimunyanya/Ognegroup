@@ -1,9 +1,10 @@
-﻿using MediatR;
+﻿using Application.Commands;
+using Application.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Ognegroup.Application.Commands;
-using Ognegroup.Application.Queries;
 
-namespace Ognegroup.Web.Controllers;
+namespace Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,32 +17,58 @@ public class ProductsController : ControllerBase
         _mediator = mediator;
     }
 
+    // GET: api/products?page=1&pageSize=10&searchTerm=mouse
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] GetAllProductsQuery query)
     {
-        var products = await _mediator.Send(new GetAllProductsQuery());
-        return Ok(products);
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 
+    // GET: api/products/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var query = new GetProductByIdQuery { Id = id };
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    // POST: api/products
     [HttpPost]
-    public async Task<IActionResult> Add(CreateProductCommand command)
+    public async Task<IActionResult> Create([FromBody] CreateProductCommand command)
     {
-        await _mediator.Send(command);
-        return Ok();
+        var id = await _mediator.Send(command);
+        return Ok(new { Id = id });
     }
 
+    // PUT: api/products/{id}
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, UpdateProductCommand command)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateProductCommand command)
     {
-        command.Id = id; // Ensure the ID from the URL is passed to the command
+        if (id != command.Id)
+        {
+            return BadRequest("ID in URL and body must match.");
+        }
+
         await _mediator.Send(command);
-        return NoContent(); // 204 No Content is standard for successful updates
+        return NoContent();
     }
 
+    // DELETE: api/products/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _mediator.Send(new DeleteProductCommand { Id = id });
+        var command = new DeleteProductCommand { Id = id };
+        await _mediator.Send(command);
         return NoContent();
+    }
+
+    // POST: api/products/import
+    [HttpPost("import")]
+    public async Task<IActionResult> Import([FromBody] ImportProductsCommand command)
+    {
+        var processedCount = await _mediator.Send(command);
+        return Ok(new { Message = $"Successfully processed {processedCount} products." });
     }
 }

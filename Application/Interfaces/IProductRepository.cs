@@ -7,6 +7,8 @@ namespace Application.Interfaces
 {
     public interface IProductRepository
     {
+        Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? searchTerm);
+
         Task<IEnumerable<Product>> GetAllAsync();
         Task<Product?> GetByIdAsync(int id); // Fetch a single product
         Task AddAsync(Product product);      // Add a new product

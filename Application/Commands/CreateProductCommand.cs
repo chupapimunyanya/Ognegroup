@@ -2,17 +2,20 @@
 using Domain;
 using MediatR;
 
-namespace Ognegroup.Application.Commands;
+namespace Application.Commands;
 
-// Command. Has only needed data.
-public class CreateProductCommand : IRequest
+// Command definition for creating a new product
+public class CreateProductCommand : IRequest<int>
 {
     public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
+    public decimal CostPrice { get; set; }
+    public decimal RetailPrice { get; set; }
+    public string ExternalId { get; set; } = string.Empty;
+    public int SupplierId { get; set; }
 }
 
-// Handler. Transforms the command into a full-fledged product and saves it.
-public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand>
+// Handler that executes the creation logic
+public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
 {
     private readonly IProductRepository _repository;
 
@@ -21,14 +24,20 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand>
         _repository = repository;
     }
 
-    public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
+        // Map command data to the updated domain entity
         var product = new Product
         {
             Name = request.Name,
-            Price = request.Price
+            CostPrice = request.CostPrice,
+            RetailPrice = request.RetailPrice,
+            ExternalId = request.ExternalId,
+            SupplierId = request.SupplierId
         };
 
         await _repository.AddAsync(product);
+
+        return product.Id;
     }
 }
