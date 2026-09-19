@@ -1,5 +1,10 @@
 using Application;
+using Application.Interfaces;
 using Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Ognegroup.Web.Middlewares;
 
 namespace Web
 {
@@ -9,17 +14,35 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // DB connection
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddControllers();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+
+            // Adding MediatR. Specify for it to look for handlers in the Application layer assembly.
+            // As an "anchor", use any class or interface from the Application layer.
+            builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Application.Interfaces.IProductRepository).Assembly));
+
+            // Register global exception handler and problem details
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
+            builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Ignore circular references when serializing JSON (e.g., Product -> Supplier -> Products)
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
-            builder.Services.AddScoped<IProductParser, MockProductParser>();
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+            app.UseExceptionHandler();
+
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
@@ -28,7 +51,6 @@ namespace Web
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

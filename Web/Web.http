@@ -1,6 +1,92 @@
-@Web_HostAddress = http://localhost:5207
+﻿@Web_HostAddress = https://localhost:7197
 
-GET {{Web_HostAddress}}/weatherforecast/
+### 1. Создать поставщика (ВЫПОЛНЯТЬ СТРОГО ПЕРВЫМ)
+# Этот запрос создаст поставщика в базе данных. 
+# В ответе сервер вернет его ID (например, {"id": 1}).
+POST {{Web_HostAddress}}/api/suppliers
+Content-Type: application/json
+
+{
+  "name": "AliExpress",
+  "defaultMarkupPercentage": 30.0
+}
+
+###
+
+### 2. Проверить список товаров (Должен вернуть пустой массив [])
+GET {{Web_HostAddress}}/api/products
 Accept: application/json
 
 ###
+
+### 3. Создать товар (ВЫПОЛНЯТЬ ВТОРЫМ)
+# ВАЖНО: Значение "supplierId" должно точно совпадать с ID, 
+# который ты получил в ответе на первый запрос!
+POST {{Web_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Wireless Gaming Mouse",
+  "costPrice": 10.00,
+  "retailPrice": 13.00,
+  "externalId": "ALI-12345",
+  "supplierId": 1
+}
+
+###
+
+### 4. Получить все товары с привязанными поставщиками
+# Теперь запрос должен вернуть товар, а внутри него — вложенный объект "supplier" 
+# благодаря нашему .Include() в репозитории.
+GET {{Web_HostAddress}}/api/products
+Accept: application/json
+
+
+###
+
+### Импорт прайс-листа от поставщика
+POST {{Web_HostAddress}}/api/products/import
+Content-Type: application/json
+
+{
+  "supplierId": 1,
+  "items": [
+    {
+      "name": "Mechanical Keyboard K68",
+      "costPrice": 50.00,
+      "externalId": "ALI-K68-001"
+    },
+    {
+      "name": "Wireless Gaming Mouse",
+      "costPrice": 12.00,
+      "externalId": "ALI-12345" 
+    }
+  ]
+}
+
+### Получить первую страницу (по умолчанию 20 товаров)
+GET {{Web_HostAddress}}/api/products
+
+### Получить 2 товара на страницу и найти только мышки
+GET {{Web_HostAddress}}/api/products?page=1&pageSize=2&searchTerm=Mouse
+
+### Импорт прайс-листа (С КАРТИНКАМИ)
+POST {{Web_HostAddress}}/api/products/import
+Content-Type: application/json
+
+{
+  "supplierId": 1,
+  "items": [
+    {
+      "name": "Mechanical Keyboard K68",
+      "description": "Awesome RGB mechanical keyboard with red switches.",
+      "imageUrl": "https://example.com/k68.jpg",
+      "costPrice": 50.00,
+      "externalId": "ALI-K68-001"
+    }
+  ]
+}
+
+### Получить один товар по ID
+GET {{Web_HostAddress}}/api/products/666
+Accept: application/json
