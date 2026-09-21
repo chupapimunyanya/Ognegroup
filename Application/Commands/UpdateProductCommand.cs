@@ -13,6 +13,7 @@ public class UpdateProductCommand : IRequest
     public decimal RetailPrice { get; set; }
     public string ExternalId { get; set; } = string.Empty;
     public int SupplierId { get; set; }
+    public bool IsAvailable { get; set; } = true;
 }
 
 // Handler that executes the update logic
@@ -41,6 +42,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
         product.RetailPrice = request.RetailPrice;
         product.ExternalId = request.ExternalId;
         product.SupplierId = request.SupplierId;
+        product.IsAvailable = request.IsAvailable;
 
         await _repository.UpdateAsync(product);
     }

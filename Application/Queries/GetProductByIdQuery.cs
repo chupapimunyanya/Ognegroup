@@ -41,7 +41,8 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
             CostPrice = product.CostPrice,
             RetailPrice = product.RetailPrice,
             ExternalId = product.ExternalId,
-            SupplierName = product.Supplier?.Name ?? "Unknown"
+            SupplierName = product.Supplier?.Name ?? "Unknown",
+            IsAvailable = product.IsAvailable
         };
     }
 }

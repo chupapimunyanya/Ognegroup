@@ -11,6 +11,8 @@ public class Product
     public decimal RetailPrice { get; set; }
     public string ExternalId { get; set; } = string.Empty;
 
+    public bool IsAvailable { get; set; } = true;
+
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; } = null!;
 }
