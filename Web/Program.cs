@@ -20,6 +20,11 @@ namespace Web
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+            // Register global exception handler and problem details
+            builder.Services.AddExceptionHandler<Ognegroup.Web.Middlewares.GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails(); // Обязательно для красивого вывода ошибок
 
             // Adding MediatR. Specify for it to look for handlers in the Application layer assembly.
             // As an "anchor", use any class or interface from the Application layer.
@@ -51,6 +56,8 @@ namespace Web
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.UseExceptionHandler();
 
             app.MapControllers();
 
