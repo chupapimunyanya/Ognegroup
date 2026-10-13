@@ -40,6 +40,16 @@ namespace Web
         // Ignore circular references when serializing JSON (e.g., Product -> Supplier -> Products)
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("FrontendPolicy", policy =>
+                {
+                    policy.AllowAnyOrigin() // For MVP allow requests from anywhere
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -54,6 +64,8 @@ namespace Web
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("FrontendPolicy");
 
             app.UseAuthorization();
 
