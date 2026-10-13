@@ -137,3 +137,12 @@ Content-Type: application/json
 ### Проверяем остатки
 GET {{Web_HostAddress}}/api/products
 Accept: application/json
+
+### Get JWT Token
+POST {{Web_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "SuperStrongPassword123!"
+}
