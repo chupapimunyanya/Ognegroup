@@ -90,3 +90,59 @@ Content-Type: application/json
 ### Получить один товар по ID
 GET {{Web_HostAddress}}/api/products/666
 Accept: application/json
+
+### Оформить заказ (Корзина)
+POST {{Web_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "John Doe",
+  "customerEmail": "john.doe@example.com",
+  "customerPhone": "+1234567890",
+  "shippingAddress": "123 Main St, Springfield",
+  "items": [
+    {
+      "productId": 2, 
+      "quantity": 1
+    },
+    {
+      "productId": 6, 
+      "quantity": 2
+    }
+  ]
+}
+
+### Получить список всех заказов
+GET {{Web_HostAddress}}/api/orders
+Accept: application/json
+
+###
+GET {{Web_HostAddress}}/api/products/9999
+
+### Импорт свежего прайса (Клавиатуры нет в наличии)
+POST {{Web_HostAddress}}/api/products/import
+Content-Type: application/json
+
+{
+  "supplierId": 1,
+  "items": [
+    {
+      "name": "Wireless Gaming Mouse V2",
+      "costPrice": 14.00, 
+      "externalId": "ALI-12345"
+    }
+  ]
+}
+
+### Проверяем остатки
+GET {{Web_HostAddress}}/api/products
+Accept: application/json
+
+### Get JWT Token
+POST {{Web_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "SuperStrongPassword123!"
+}

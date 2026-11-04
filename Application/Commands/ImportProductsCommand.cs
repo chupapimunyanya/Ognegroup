@@ -40,39 +40,52 @@ public class ImportProductsCommandHandler : IRequestHandler<ImportProductsComman
             throw new NotFoundException($"Supplier with ID {request.SupplierId} not found.");
         }
 
-        var allProducts = await _productRepository.GetAllAsync();
+        var allProducts = (await _productRepository.GetAllAsync()).ToList();
+        var incomingExternalIds = request.Items.Select(i => i.ExternalId).ToHashSet();
         int processedCount = 0;
 
+        // SYNCHRONIZATION OF AVAILABILITY: Looking for products of this supplier that are NOT in the new price list
+        var supplierProductsInDb = allProducts.Where(p => p.SupplierId == supplier.Id).ToList();
+        foreach (var existingProduct in supplierProductsInDb)
+        {
+            if (!incomingExternalIds.Contains(existingProduct.ExternalId))
+            {
+                existingProduct.IsAvailable = false; // Product is no longer available from the supplier!
+                await _productRepository.UpdateAsync(existingProduct);
+            }
+        }
+
+        // UPDATE AND ADD PRODUCTS
         foreach (var item in request.Items)
         {
             var markupAmount = item.CostPrice * (supplier.DefaultMarkupPercentage / 100);
             var retailPrice = item.CostPrice + markupAmount;
 
-            var existingProduct = allProducts.FirstOrDefault(p => p.ExternalId == item.ExternalId && p.SupplierId == supplier.Id);
+            var existingProduct = supplierProductsInDb.FirstOrDefault(p => p.ExternalId == item.ExternalId);
 
             if (existingProduct != null)
             {
-                // Update existing product with new details
                 existingProduct.CostPrice = item.CostPrice;
                 existingProduct.RetailPrice = retailPrice;
                 existingProduct.Name = item.Name;
-                existingProduct.Description = item.Description; // NEW
-                existingProduct.ImageUrl = item.ImageUrl;       // NEW
+                existingProduct.Description = item.Description;
+                existingProduct.ImageUrl = item.ImageUrl;
+                existingProduct.IsAvailable = true; // Item is again in the price list, so it's available!
 
                 await _productRepository.UpdateAsync(existingProduct);
             }
             else
             {
-                // Create new product with all details
                 var newProduct = new Product
                 {
                     Name = item.Name,
-                    Description = item.Description, // NEW
-                    ImageUrl = item.ImageUrl,       // NEW
+                    Description = item.Description,
+                    ImageUrl = item.ImageUrl,
                     CostPrice = item.CostPrice,
                     RetailPrice = retailPrice,
                     ExternalId = item.ExternalId,
-                    SupplierId = supplier.Id
+                    SupplierId = supplier.Id,
+                    IsAvailable = true
                 };
 
                 await _productRepository.AddAsync(newProduct);

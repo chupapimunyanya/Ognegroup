@@ -13,6 +13,7 @@ public class ProductDto
     public decimal RetailPrice { get; set; }
     public string ExternalId { get; set; } = string.Empty;
     public string SupplierName { get; set; } = string.Empty;
+    public bool IsAvailable { get; set; }
 }
 
 public class PaginatedResult<T>
@@ -52,7 +53,8 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, P
             CostPrice = p.CostPrice,
             RetailPrice = p.RetailPrice,
             ExternalId = p.ExternalId,
-            SupplierName = p.Supplier?.Name ?? "Unknown"
+            SupplierName = p.Supplier?.Name ?? "Unknown",
+            IsAvailable = p.IsAvailable
         });
 
         return new PaginatedResult<ProductDto>
